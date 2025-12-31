@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Pokemon List</title>
+</head>
+<body>
+    <h1>My Pokemon List</h1>
+
+    <div>
+        <label for="weightFilter">Filter by Weight:</label>
+        <select id="weightFilter" onchange="filterWeight()">
+            <option value="0" th:selected="${selectedWeightType == 0}">Light (0-200)</option>
+            <option value="1" th:selected="${selectedWeightType == 1}">Medium (201-300)</option>
+            <option value="2" th:selected="${selectedWeightType == 2}">Heavy (> 300)</option>
+            <option value="3" th:selected="${selectedWeightType == 3}">All</option>
+        </select>
+    </div>
+    <br/>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Base Experience</th>
+                <th>Weight</th>
+                <th>Image</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="pokemon : ${pokemons}">
+                <td th:text="${pokemon.id}">1</td>
+                <td th:text="${pokemon.name}">Bulbasaur</td>
+                <td th:text="${pokemon.baseExperience}">64</td>
+                <td th:text="${pokemon.weight}">69</td>
+                <td><img th:src="${pokemon.imagePath}" alt="Pokemon Image" width="100"/></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        function filterWeight() {
+            var val = document.getElementById("weightFilter").value;
+            window.location.href = "/poke/list?weightType=" + val;
+        }
+    </script>
+</body>
+</html>
