@@ -77,10 +77,6 @@ public class PokemonService {
                 .collect(Collectors.toList());
     }
 
-    public List<Pokemon> getAllPokemons() {
-        return pokemonRepository.findAllByOrderByWeightDesc();
-    }
-
     public List<Pokemon> getPokemonsByWeight(Integer type) {
         if (type == null || type == 3) {
             return pokemonRepository.findAllByOrderByWeightDesc();
