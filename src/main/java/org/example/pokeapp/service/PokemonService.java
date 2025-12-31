@@ -1,6 +1,7 @@
 package org.example.pokeapp.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.pokeapp.client.PokemonClient;
 import org.example.pokeapp.dto.response.PokemonListResDto;
 import org.example.pokeapp.dto.response.PokemonResDto;
@@ -13,11 +14,19 @@ import org.example.pokeapp.repository.RelationAbilitiesRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PokemonService {
     private final PokemonClient pokemonClient;
     private final PokemonRepository pokemonRepository;
@@ -40,11 +49,14 @@ public class PokemonService {
             return null;
         }
 
+        String imageUrl = pokemonResDto.sprites().front_default();
+        String localImagePath = downloadImage(imageUrl, name);
+
         Pokemon pokemon = Pokemon.builder()
                 .name(pokemonResDto.name())
                 .baseExperience(pokemonResDto.baseExperience())
                 .weight(pokemonResDto.weight())
-                .imagePath(pokemonResDto.sprites().front_default())
+                .imagePath(localImagePath)
                 .build();
 
         Pokemon savedPokemon = pokemonRepository.save(pokemon);
@@ -66,6 +78,31 @@ public class PokemonService {
         });
 
         return savedPokemon;
+    }
+
+    private String downloadImage(String imageUrl, String pokemonName) {
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            return null;
+        }
+
+        String uploadDir = "src/main/resources/static/images/";
+        try {
+            String fileName = pokemonName + ".png";
+            Path uploadPath = Paths.get(uploadDir);
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            try (InputStream in = new URL(imageUrl).openStream()) {
+                Path filePath = uploadPath.resolve(fileName);
+                Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
+                return "/images/" + fileName;
+            }
+        } catch (IOException e) {
+            log.error("Failed to download image for pokemon: {}", pokemonName, e);
+            return imageUrl; // Fallback to original URL if download fails
+        }
     }
 
     @Transactional
